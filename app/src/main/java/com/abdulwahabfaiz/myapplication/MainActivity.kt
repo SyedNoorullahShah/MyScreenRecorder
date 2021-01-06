@@ -7,28 +7,45 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.abdulwahabfaiz.myapplication.databinding.ActivityMainBinding
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 
+private const val REQUEST_MEDIA_PROJECTION = 1
 
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
-    private val REQUEST_MEDIA_PROJECTION: Int = 1
 
-    private val broadcastReceiver = object:BroadcastReceiver(){
+    private lateinit var binding: ActivityMainBinding
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-
+            val isRecording = intent!!.getBooleanExtra("isRecording", false)
+            toggleBtnView(isRecording)
         }
 
     }
+
+    private fun toggleBtnView(isRecording: Boolean) {
+        if (isRecording) {
+            binding.btnStart.text = "Recording..."
+            binding.btnStart.isEnabled = false
+        } else {
+            binding.btnStart.text = "Start Recording"
+            binding.btnStart.isEnabled = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        registerReceiver(broadcastReceiver, IntentFilter())
-        startRecorder()
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        toggleBtnView(MediaService.isRecording)
+        registerReceiver(broadcastReceiver, IntentFilter(MediaService.BROADCAST_ACTION))
+        binding.btnStart.setOnClickListener { startRecorder()}
     }
 
     @AfterPermissionGranted(123)
@@ -46,7 +63,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             EasyPermissions.requestPermissions(
                 this, "We need both the permissions !",
                 123, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE
-            );
+            )
         }
 
     }
@@ -68,6 +85,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             data!!.setClass(this, MediaService::class.java)
             data.putExtra("code", resultCode)
 
+            Toast.makeText(this,"Recording started for 10 seconds", Toast.LENGTH_SHORT).show()
             ContextCompat.startForegroundService(this, data)
         }
     }
@@ -80,6 +98,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             AppSettingsDialog.Builder(this).build().show()
         }
+
     }
 
 
