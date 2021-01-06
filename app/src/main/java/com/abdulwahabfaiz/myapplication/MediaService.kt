@@ -1,6 +1,8 @@
 package com.abdulwahabfaiz.myapplication
 
 import android.app.Service
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -12,14 +14,24 @@ import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
+import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
 import com.abdulwahabfaiz.myapplication.NotificationUtils.Companion.notification
 import java.io.File
 import java.util.*
 import kotlin.concurrent.timerTask
 
 class MediaService : Service() {
+    companion object {
+        var isRunning: Boolean = false
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        isRunning = true
+    }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground()
 
@@ -46,6 +58,11 @@ class MediaService : Service() {
         }, 10_000)
         return START_STICKY
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
     }
 
     private fun startForeground() {
@@ -83,18 +100,29 @@ class MediaService : Service() {
         profile.videoFrameHeight = mScreenHeight
         profile.videoFrameWidth = mScreenWidth
         mMediaRecorder.setProfile(profile)
-
-        mMediaRecorder.setOutputFile(getFileName())
+        setOutputFile(mMediaRecorder)
         mMediaRecorder.prepare()
         return mMediaRecorder
     }
 
-    private fun getFileName(): String {
-        val mFolder = File("${filesDir}/sample")
-        val recFile = File(mFolder.absolutePath.toString() + "/some.mp4")
-        if (!mFolder.exists()) mFolder.mkdir()
-        if (!recFile.exists()) recFile.createNewFile()
-        return recFile.path
+    private fun setOutputFile(mediaRecorder: MediaRecorder) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentVals = ContentValues()
+            contentVals.put(MediaStore.MediaColumns.DISPLAY_NAME, "some")
+            contentVals.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+            contentVals.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES)
+            val uri =
+                contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentVals)
+            val fileDescriptor = contentResolver.openFileDescriptor(uri!!, "w")
+            mediaRecorder.setOutputFile(fileDescriptor!!.fileDescriptor)
+        } else {
+            val fileDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+            val file = File(fileDir, "some.mp4")
+            if(!file.exists()) file.createNewFile()
+            mediaRecorder.setOutputFile(file.path)
+        }
     }
 
     private fun createMediaProjection(resultCode: Int, data: Intent?): MediaProjection {
@@ -102,5 +130,8 @@ class MediaService : Service() {
         return manager.getMediaProjection(resultCode, data!!) as MediaProjection
     }
 
-
+/*val mFolder = File("${filesDir}/sample")
+        val recFile = File(mFolder.absolutePath.toString() + "/some.mp4")
+        if (!mFolder.exists()) mFolder.mkdir()
+        if (!recFile.exists()) recFile.createNewFile()*/
 }
