@@ -24,6 +24,8 @@
 
         <service android:name=".MediaService"
             android:foregroundServiceType="mediaProjection"/>
+
+
     </application>
 
 </manifest>

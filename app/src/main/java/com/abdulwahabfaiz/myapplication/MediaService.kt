@@ -23,15 +23,18 @@ import kotlin.concurrent.timerTask
 
 class MediaService : Service() {
     companion object {
-        var isRunning: Boolean = false
+        val BROADCAST_ACTION = "updateUI"
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        isRunning = true
+        sendBroadcast(broadcastIntent())
     }
+
+    private fun broadcastIntent() = Intent(BROADCAST_ACTION).apply { putExtra("isRecording") }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground()
 

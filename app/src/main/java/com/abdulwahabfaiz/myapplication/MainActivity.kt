@@ -1,8 +1,10 @@
 package com.abdulwahabfaiz.myapplication
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.util.Log
@@ -16,9 +18,16 @@ import pub.devrel.easypermissions.EasyPermissions
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private val REQUEST_MEDIA_PROJECTION: Int = 1
 
+    private val broadcastReceiver = object:BroadcastReceiver(){
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+        }
+
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        registerReceiver(broadcastReceiver, IntentFilter())
         startRecorder()
     }
 
@@ -29,14 +38,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         if (EasyPermissions.hasPermissions(
                 this,
                 Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
         ) {
             startActivityForResult(manager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION)
         } else {
             EasyPermissions.requestPermissions(
                 this, "We need both the permissions !",
-                123, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE
+                123, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE
             );
         }
 
