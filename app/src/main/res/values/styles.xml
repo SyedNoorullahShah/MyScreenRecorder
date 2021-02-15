@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="radio_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:paddingStart">5dp</item>
+        <item name="android:paddingEnd">5dp</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="settings_text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.MaterialComponents.Headline6
+        </item>
+    </style>
+
+    <style name="radio_group">
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+</resources>
