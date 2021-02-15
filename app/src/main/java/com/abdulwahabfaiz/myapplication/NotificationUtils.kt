@@ -17,7 +17,7 @@ class NotificationUtils {
             return NotificationCompat.Builder(ctx, CHANNEL_ID)
                 .setContentTitle("Recording...")
                 .setContentText("in progress")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_launcher_background)
                 .build();
         }
 

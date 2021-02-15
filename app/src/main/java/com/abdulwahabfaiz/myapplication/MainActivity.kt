@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.abdulwahabfaiz.myapplication.databinding.ActivityMainBinding
@@ -24,28 +24,34 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val isRecording = intent!!.getBooleanExtra("isRecording", false)
-            toggleBtnView(isRecording)
+            toggleBtns(isRecording)
         }
 
     }
 
-    private fun toggleBtnView(isRecording: Boolean) {
-        if (isRecording) {
-            binding.btnStart.text = "Recording..."
-            binding.btnStart.isEnabled = false
-        } else {
-            binding.btnStart.text = "Start Recording"
-            binding.btnStart.isEnabled = true
-        }
+    private fun toggleBtns(isRecording: Boolean) {
+        val startBtnVis = if (isRecording) View.GONE else View.VISIBLE
+        val stopBtnVis = if (isRecording) View.VISIBLE else View.GONE
+
+        binding.btnStart.visibility = startBtnVis
+        binding.btnStop.visibility = stopBtnVis
+        binding.settingsContainer.visibility = startBtnVis
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        toggleBtnView(MediaService.isRecording)
+        VideoSettings.setMetrics(this)
+        binding.fpsOptions.setOnCheckedChangeListener(VideoSettings)
+        binding.resolutionOptions.setOnCheckedChangeListener(VideoSettings)
+        binding.orientationOptions.setOnCheckedChangeListener(VideoSettings)
+
+        toggleBtns(MediaService.isRecording)
         registerReceiver(broadcastReceiver, IntentFilter(MediaService.BROADCAST_ACTION))
-        binding.btnStart.setOnClickListener { startRecorder()}
+        binding.btnStart.setOnClickListener { startRecorder() }
+        binding.btnStop.setOnClickListener { stopService(Intent(this, MediaService::class.java)) }
     }
 
     @AfterPermissionGranted(123)
@@ -81,11 +87,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == AppSettingsDialog.DEFAULT_SETTINGS_REQ_CODE) {
             startRecorder()
+
         } else if (resultCode == RESULT_OK) {
             data!!.setClass(this, MediaService::class.java)
             data.putExtra("code", resultCode)
 
-            Toast.makeText(this,"Recording started for 10 seconds", Toast.LENGTH_SHORT).show()
             ContextCompat.startForegroundService(this, data)
         }
     }

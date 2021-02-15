@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.CamcorderProfile
@@ -16,9 +17,9 @@ import android.os.Environment
 import android.os.IBinder
 import android.provider.MediaStore
 import com.abdulwahabfaiz.myapplication.NotificationUtils.Companion.notification
+import com.abdulwahabfaiz.myapplication.VideoSettings.currentMetrics
+import com.abdulwahabfaiz.myapplication.VideoSettings.selectedMetrics
 import java.io.File
-import java.util.*
-import kotlin.concurrent.timerTask
 
 
 class MediaService : Service() {
@@ -47,34 +48,25 @@ class MediaService : Service() {
         startForeground()
 
         val mResultCode = intent!!.getIntExtra("code", -1)
-        val mScreenWidth = intent.getIntExtra("width", 720)
-        val mScreenHeight = intent.getIntExtra("height", 1280)
-        val mScreenDensity = intent.getIntExtra("density", 1)
 
         mMediaProjection = createMediaProjection(mResultCode, intent);
-        mMediaRecorder = createMediaRecorder(mScreenWidth, mScreenHeight);
+        mMediaRecorder = createMediaRecorder()
         mVirtualDisplay = createVirtualDisplay(
             mMediaProjection,
-            mMediaRecorder,
-            mScreenDensity,
-            mScreenWidth,
-            mScreenHeight
+            mMediaRecorder
         )
+
         mMediaRecorder.start()
-        startTimer()
+
 
         return START_STICKY
     }
 
-    private fun startTimer() {
-        Timer().schedule(timerTask {
-            stopSelf()
-        }, 10_000)
-    }
 
     override fun onDestroy() {
         isRecording = false
         mMediaRecorder.stop()
+        mMediaRecorder.release()
         mMediaProjection.stop()
         mVirtualDisplay.release()
         sendBroadcast(broadcastIntent())
@@ -96,37 +88,58 @@ class MediaService : Service() {
 
     private fun createVirtualDisplay(
         mMediaProjection: MediaProjection,
-        mMediaRecorder: MediaRecorder,
-        screenDensity: Int,
-        mScreenWidth: Int,
-        mScreenHeight: Int
+        mMediaRecorder: MediaRecorder
     ) =
         mMediaProjection.createVirtualDisplay(
             "MY DISPLAY",
-            mScreenWidth, mScreenHeight, screenDensity,
+            selectedMetrics.widthPixels, selectedMetrics.heightPixels, currentMetrics.densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mMediaRecorder.surface, null, null
         )
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        when(newConfig.orientation){
+            Configuration.ORIENTATION_PORTRAIT -> selectedMetrics.apply {
+                heightPixels = currentMetrics.heightPixels
+                widthPixels = currentMetrics.widthPixels
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> selectedMetrics.apply {
+                heightPixels = currentMetrics.widthPixels
+                widthPixels = currentMetrics.heightPixels
+            }
 
-    private fun createMediaRecorder(mScreenWidth: Int, mScreenHeight: Int): MediaRecorder {
+        }
+    }
+
+    private fun createMediaRecorder(): MediaRecorder {
         val mMediaRecorder = MediaRecorder()
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT)
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
-        val profile: CamcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
-        profile.videoFrameWidth = mScreenWidth
-        profile.videoFrameHeight = mScreenHeight
+        if (VideoSettings.orientation != -1) mMediaRecorder.setOrientationHint(VideoSettings.orientation)
+
+        val profile: CamcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH).apply {
+            videoFrameWidth = selectedMetrics.widthPixels
+            videoFrameHeight = selectedMetrics.heightPixels
+            fileFormat = MediaRecorder.OutputFormat.MPEG_4
+
+            //videoFrameRate = 10
+        }
         mMediaRecorder.setProfile(profile)
         setOutputFile(mMediaRecorder)
         mMediaRecorder.prepare()
         return mMediaRecorder
     }
 
+
     private fun setOutputFile(mediaRecorder: MediaRecorder) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentVals = ContentValues()
-            contentVals.put(MediaStore.MediaColumns.DISPLAY_NAME, "Record_${System.currentTimeMillis()}")
+            contentVals.put(
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                "Record_${System.currentTimeMillis()}"
+            )
             contentVals.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
             contentVals.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES)
             val uri =
@@ -145,9 +158,4 @@ class MediaService : Service() {
         val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         return manager.getMediaProjection(resultCode, data!!) as MediaProjection
     }
-
-/*val mFolder = File("${filesDir}/sample")
-        val recFile = File(mFolder.absolutePath.toString() + "/some.mp4")
-        if (!mFolder.exists()) mFolder.mkdir()
-        if (!recFile.exists()) recFile.createNewFile()*/
 }

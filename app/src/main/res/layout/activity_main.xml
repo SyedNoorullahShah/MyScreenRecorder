@@ -1,14 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="8dp">
 
     <Button
         android:id="@+id/btn_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:text="start recording" />
+        android:text="start recording"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.238" />
 
-</RelativeLayout>
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="stop "
+        app:backgroundTint="#FF0000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.238" />
+
+
+    <LinearLayout
+        android:id="@+id/settings_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start"
+        app:layout_constraintVertical_bias="0.26">
+
+        <TextView
+            style="@style/settings_text"
+            android:text="Resolution:" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RadioGroup
+                android:id="@+id/resolution_options"
+                style="@style/radio_group"
+                android:checkedButton="@id/res_auto">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/res_auto"
+                    style="@style/radio_style"
+                    android:text="Auto" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/res_1080"
+                    style="@style/radio_style"
+                    android:text="1080P" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/res_720"
+                    style="@style/radio_style"
+                    android:text="720P" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/res_480"
+                    style="@style/radio_style"
+                    android:text="480P" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/res_360"
+                    style="@style/radio_style"
+                    android:text="360P" />
+
+            </RadioGroup>
+        </HorizontalScrollView>
+
+        <TextView
+            style="@style/settings_text"
+            android:checkedButton="@id/orien_auto"
+            android:text="Orientation:" />
+
+        <RadioGroup
+            android:id="@+id/orientation_options"
+            style="@style/radio_group"
+            android:checkedButton="@id/orien_auto">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/orien_auto"
+                style="@style/radio_style"
+                android:text="Auto" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/portrait"
+                style="@style/radio_style"
+                android:text="Portrait" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/landscape"
+                style="@style/radio_style"
+                android:text="Landscape" />
+        </RadioGroup>
+
+
+        <TextView
+            style="@style/settings_text"
+            android:text="Frame Rate:" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RadioGroup
+                android:id="@+id/fps_options"
+                style="@style/radio_group"
+                android:checkedButton="@id/fps_auto">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_auto"
+                    style="@style/radio_style"
+                    android:text="Auto" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_60"
+                    style="@style/radio_style"
+                    android:text="60FPS" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_50"
+                    style="@style/radio_style"
+                    android:text="50FPS" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_40"
+                    style="@style/radio_style"
+                    android:text="40FPS" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_30"
+                    style="@style/radio_style"
+                    android:text="30FPS" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/fps_25"
+                    style="@style/radio_style"
+                    android:text="25FPS" />
+            </RadioGroup>
+        </HorizontalScrollView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
